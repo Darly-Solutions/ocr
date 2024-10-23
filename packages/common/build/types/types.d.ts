@@ -51,6 +51,7 @@ export interface ModelBaseConstructorArg {
 export interface ModelBaseOptions {
     isDebug?: boolean;
     debugOutputDir?: string;
+    accuracyMean?: number;
 }
 export interface ModelCreateOptions extends ModelBaseOptions {
     models?: {

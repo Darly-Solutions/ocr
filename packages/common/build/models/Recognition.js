@@ -3,6 +3,7 @@ import { FileUtils, InferenceSession, defaultModels } from '../backend/index.js'
 import { ModelBase } from './ModelBase.js';
 export class Recognition extends ModelBase {
     #dictionary;
+    #accuracyMean;
     static async create({ models, onnxOptions = {}, ...restOptions }) {
         const recognitionPath = models?.recognitionPath || defaultModels?.recognitionPath;
         invariant(recognitionPath, 'recognitionPath is required');
@@ -16,6 +17,7 @@ export class Recognition extends ModelBase {
     constructor(options, dictionary) {
         super(options);
         this.#dictionary = dictionary;
+        this.#accuracyMean = options.options.accuracyMean ?? 0.5;
     }
     async run(lineImages, { onnxOptions = {} } = {}) {
         const modelDatas = await Promise.all(
@@ -46,7 +48,7 @@ export class Recognition extends ModelBase {
             allLines.unshift(...lines);
         }
         // console.timeEnd('Recognition')
-        const result = calculateBox({ lines: allLines, lineImages });
+        const result = calculateBox({ lines: allLines, lineImages }, { accuracyMean: this.#accuracyMean });
         return result;
     }
     decodeText(output) {
@@ -103,7 +105,7 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
     }
     return { text, mean };
 }
-function calculateBox({ lines, lineImages, }) {
+function calculateBox({ lines, lineImages, }, { accuracyMean }) {
     let mainLine = lines;
     const box = lineImages;
     for (const i in mainLine) {
@@ -114,7 +116,7 @@ function calculateBox({ lines, lineImages, }) {
         }
         mainLine[i]['box'] = b;
     }
-    mainLine = mainLine.filter((x) => x.mean >= 0.5);
+    mainLine = mainLine.filter((x) => x.mean >= accuracyMean);
     mainLine = afAfRec(mainLine);
     return mainLine;
 }
@@ -167,7 +169,7 @@ function afAfRec(l) {
         const t = [];
         let m = 0;
         for (const j of i) {
-            if (!ind.get(j))
+            if (typeof ind.get(j) !== 'number')
                 continue;
             const x = l[ind.get(j)];
             t.push(x.text);
