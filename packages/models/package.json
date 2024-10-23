@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gutenye/ocr.git",
+    "url": "https://github.com/Darly-Solutions/ocr.git",
     "directory": "packages/models"
   },
   "exports": {

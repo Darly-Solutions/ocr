@@ -6,6 +6,7 @@ import { ModelBase } from './ModelBase'
 
 export class Recognition extends ModelBase {
   #dictionary: Dictionary
+  #accuracyMean: number
 
   static async create({ models, onnxOptions = {}, ...restOptions }: ModelCreateOptions) {
     const recognitionPath = models?.recognitionPath || defaultModels?.recognitionPath
@@ -21,6 +22,7 @@ export class Recognition extends ModelBase {
   constructor(options: ModelBaseConstructorArg, dictionary: Dictionary) {
     super(options)
     this.#dictionary = dictionary
+    this.#accuracyMean = options.options.accuracyMean ?? 0.5
   }
 
   async run(lineImages: LineImage[], { onnxOptions = {} }: { onnxOptions?: InferenceSessionCommon.RunOptions } = {}) {
@@ -55,7 +57,7 @@ export class Recognition extends ModelBase {
       allLines.unshift(...lines)
     }
     // console.timeEnd('Recognition')
-    const result = calculateBox({ lines: allLines, lineImages })
+    const result = calculateBox({ lines: allLines, lineImages }, { accuracyMean: this.#accuracyMean })
     return result
   }
 
@@ -121,6 +123,10 @@ function calculateBox({
 }: {
   lines: Line[]
   lineImages: LineImage[]
+}, {
+  accuracyMean
+}: {
+  accuracyMean: number
 }) {
   let mainLine = lines
   const box = lineImages
@@ -132,7 +138,7 @@ function calculateBox({
     }
     mainLine[i]['box'] = b
   }
-  mainLine = mainLine.filter((x) => x.mean >= 0.5)
+  mainLine = mainLine.filter((x) => x.mean >= accuracyMean)
   mainLine = afAfRec(mainLine)
   return mainLine
 }
@@ -192,7 +198,7 @@ function afAfRec(l: Line[]) {
     const t = []
     let m = 0
     for (const j of i) {
-      if(!ind.get(j)) continue;
+      if(typeof ind.get(j) !== 'number') continue;
       const x = l[ind.get(j)!]
       t.push(x.text)
       m += x.mean

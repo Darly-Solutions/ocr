@@ -66,6 +66,7 @@ export interface ModelBaseConstructorArg {
 export interface ModelBaseOptions {
   isDebug?: boolean
   debugOutputDir?: string
+  accuracyMean?: number
 }
 
 export interface ModelCreateOptions extends ModelBaseOptions {
@@ -73,6 +74,6 @@ export interface ModelCreateOptions extends ModelBaseOptions {
     detectionPath: string
     recognitionPath: string
     dictionaryPath: string
-  }
+  },
   onnxOptions?: InferenceSession.SessionOptions
 }
