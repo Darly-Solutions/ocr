@@ -1,16 +1,15 @@
 {
-  "name": "@gutenye/ocr",
+  "name": "@darly-solutions/ocr",
   "version": "1.4.6",
   "workspaces": [
-    "packages/browser",
-    "packages/browser/example",
     "packages/common",
     "packages/models",
-    "packages/node",
-    "packages/node/example",
-    "packages/react-native",
-    "packages/react-native/example"
+    "packages/node"
   ],
+  "private": true,
+  "scripts": {
+    "build": "npm run build --workspaces"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@types/bun": "latest",

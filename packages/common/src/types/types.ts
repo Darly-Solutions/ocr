@@ -13,7 +13,7 @@ export type ReshapeOptions = {
 }
 
 export type ImageRawData = {
-  data: Uint8Array | Uint8ClampedArray // Uint8Array: Node Buffer, Uint8ClampedArray: Web ImageData
+  data: Uint8Array | Uint8ClampedArray| Buffer // Uint8Array: Node Buffer, Uint8ClampedArray: Web ImageData
   width: number
   height: number
 }

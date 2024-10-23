@@ -1,13 +1,14 @@
 import filePath from 'node:path'
-import { ImageRawBase } from '@gutenye/ocr-common'
-import type { ImageRawData, LineImage, SizeOption } from '@gutenye/ocr-common'
-import sharp from 'sharp'
+import { ImageRawBase } from '@darly-solutions/ocr-common'
+import type { ImageRawData, LineImage, SizeOption } from '@darly-solutions/ocr-common'
+import sharp from 'sharp';
 
 export class ImageRaw extends ImageRawBase {
   #sharp: sharp.Sharp
 
   static async open(path: string): Promise<ImageRaw> {
-    return new ImageRaw(await toImageRaw(sharp(path).ensureAlpha(1)))
+    // @ts-ignore
+    return new ImageRaw((await toImageRaw(sharp(path).ensureAlpha(1))))
   }
 
   constructor(imageRawData: ImageRawData) {
