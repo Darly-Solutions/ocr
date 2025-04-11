@@ -1,6 +1,6 @@
 import cv from '@techstark/opencv-js';
 import clipper from 'js-clipper';
-import { ImageRaw } from '../backend/index.js';
+import { ImageRaw } from '../backend';
 export async function splitIntoLineImages(image, sourceImage) {
     const w = image.width;
     const h = image.height;

@@ -1,2 +1,2 @@
-export * from './Detection.js';
-export * from './Recognition.js';
+export * from './Detection';
+export * from './Recognition';

@@ -1,9 +1,14 @@
 import invariant from 'tiny-invariant';
-import { FileUtils, InferenceSession, defaultModels } from '../backend/index.js';
-import { ModelBase } from './ModelBase.js';
+import { defaultModels, FileUtils, InferenceSession } from '../backend';
+import { ModelBase } from './ModelBase';
 export class Recognition extends ModelBase {
     #dictionary;
     #accuracyMean;
+    constructor(options, dictionary) {
+        super(options);
+        this.#dictionary = dictionary;
+        this.#accuracyMean = options.options.accuracyMean ?? 0.5;
+    }
     static async create({ models, onnxOptions = {}, ...restOptions }) {
         const recognitionPath = models?.recognitionPath || defaultModels?.recognitionPath;
         invariant(recognitionPath, 'recognitionPath is required');
@@ -13,11 +18,6 @@ export class Recognition extends ModelBase {
         const dictionaryText = await FileUtils.read(dictionaryPath);
         const dictionary = [...dictionaryText.split('\n'), ' '];
         return new Recognition({ model, options: restOptions }, dictionary);
-    }
-    constructor(options, dictionary) {
-        super(options);
-        this.#dictionary = dictionary;
-        this.#accuracyMean = options.options.accuracyMean ?? 0.5;
     }
     async run(lineImages, { onnxOptions = {} } = {}) {
         const modelDatas = await Promise.all(
@@ -45,7 +45,7 @@ export class Recognition extends ModelBase {
             const output = await this.runModel({ modelData, onnxOptions });
             // use Dictoinary to decode output to text
             const lines = await this.decodeText(output);
-            allLines.unshift(...lines);
+            allLines.push(...lines);
         }
         // console.timeEnd('Recognition')
         const result = calculateBox({ lines: allLines, lineImages }, { accuracyMean: this.#accuracyMean });
@@ -69,7 +69,13 @@ export class Recognition extends ModelBase {
             line[ml] = decode(this.#dictionary, predsIdx, predsProb, true);
             ml--;
         }
-        return line;
+        return line.filter(item => {
+            const text = item.text;
+            if (text.length <= 2 && !/\d/.test(text)) {
+                return false;
+            }
+            return true;
+        });
     }
 }
 function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {

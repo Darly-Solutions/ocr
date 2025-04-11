@@ -1,4 +1,4 @@
-import { Detection, Recognition } from './models/index.js';
+import { Detection, Recognition } from './models';
 export class Ocr {
     static async create(options = {}) {
         const detection = await Detection.create(options);

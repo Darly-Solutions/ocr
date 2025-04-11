@@ -3,8 +3,8 @@ import BaseOcr, { registerBackend } from '@darly-solutions/ocr-common';
 import { splitIntoLineImages } from '@darly-solutions/ocr-common/splitIntoLineImages';
 import defaultModels from '@darly-solutions/ocr-models/node';
 import { InferenceSession } from 'onnxruntime-node';
-import { FileUtils } from './FileUtils.js';
-import { ImageRaw } from './ImageRaw.js';
+import { FileUtils } from './FileUtils';
+import { ImageRaw } from './ImageRaw';
 registerBackend({
     FileUtils,
     ImageRaw,

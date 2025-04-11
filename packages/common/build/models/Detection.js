@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant';
-import { ImageRaw, InferenceSession, defaultModels, splitIntoLineImages } from '../backend/index.js';
-import { ModelBase } from './ModelBase.js';
+import { defaultModels, ImageRaw, InferenceSession, splitIntoLineImages } from '../backend';
+import { ModelBase } from './ModelBase';
 const BASE_SIZE = 32;
 export class Detection extends ModelBase {
     static async create({ models, onnxOptions = {}, ...restOptions }) {
@@ -38,8 +38,63 @@ export class Detection extends ModelBase {
         //   - returns text boxes and line images
         const lineImages = await splitIntoLineImages(outputImage, inputImage);
         this.debugBoxImage(inputImage, lineImages, 'boxes.jpg');
-        return lineImages;
+        return this.filterText(lineImages, inputImage.width, inputImage.height);
     }
+    filterText(lineImages, frameWidth, frameHeight) {
+        return lineImages.filter(lineImage => {
+            const box = lineImage.box;
+            return isTextAreaValid(box, frameWidth, frameHeight) &&
+                !isTextSkewed(box) &&
+                !isSubtitleOrHeading(box, frameWidth, frameHeight);
+        });
+    }
+}
+function isTextAreaValid(textBox, frameWidth, frameHeight, MIN_TEXT_AREA_PERCENT = 0.0037, MAX_TEXT_AREA_PERCENT = 0.9) {
+    const [x1, y1] = textBox[0]; // the first point
+    const [x2, y2] = textBox[2]; // the third point (in essence, x2, y2 is the opposite angle)
+    const textWidth = x2 - x1;
+    const textHeight = y2 - y1;
+    const textArea = textWidth * textHeight;
+    const frameArea = frameWidth * frameHeight;
+    const textAreaPercent = textArea / frameArea;
+    // Additional check for small text in the lower part and in the center
+    if (textAreaPercent < MIN_TEXT_AREA_PERCENT) {
+        // check if the text is small and is located in the lower part and in the center
+        return y1 > 0.8 * frameHeight && Math.abs((x1 + x2) / 2 - frameWidth / 2) < 0.02 * frameWidth;
+    }
+    // checking for the maximum area of the text
+    if (textAreaPercent > MAX_TEXT_AREA_PERCENT) {
+        return false;
+    }
+    // If the text goes through both checks, we return true
+    return true;
+}
+function getTextAngle(box) {
+    const [x1, y1, x2, y2] = box;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const angleRad = Math.atan2(dy, dx);
+    const angleDeg = angleRad * (180 / Math.PI);
+    return Math.abs(angleDeg);
+}
+function isTextSkewed(box, MAX_SKEW_ANGLE = 2) {
+    const angle = getTextAngle(box);
+    return angle > MAX_SKEW_ANGLE;
+}
+function isSubtitleOrHeading(textBox, frameWidth, frameHeight, horizontalTolerance = 0.07, verticalTolerance = 0.15) {
+    const [x1, y1, x2, y2] = textBox;
+    const textCenterY = (y1 + y2) / 2;
+    const textCenterX = (x1 + x2) / 2;
+    const centerY = frameHeight / 2;
+    const centerX = frameWidth / 2;
+    const toleranceY = frameHeight * verticalTolerance;
+    const toleranceX = frameWidth * horizontalTolerance;
+    if ((textCenterY < frameHeight * 0.2 || textCenterY > frameHeight * 0.8) ||
+        (textCenterY > frameHeight * 0.45 || textCenterY < frameHeight * 0.55) &&
+            (centerX - toleranceX <= textCenterX && textCenterX <= centerX + toleranceX)) {
+        return true;
+    }
+    return false;
 }
 function multipleOfBaseSize(image, { maxSize } = {}) {
     let width = image.width;

@@ -1,5 +1,5 @@
 import { type InferenceSession as InferenceSessionCommon, Tensor } from 'onnxruntime-common';
-import type { ImageRaw, LineImage, ModelBaseConstructorArg, ModelBaseOptions, ModelData, ReshapeOptions } from '../types/index.js';
+import type { ImageRaw, LineImage, ModelBaseConstructorArg, ModelBaseOptions, ModelData, ReshapeOptions } from '../types';
 export declare class ModelBase {
     #private;
     options: ModelBaseOptions;

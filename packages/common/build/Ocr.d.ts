@@ -1,5 +1,5 @@
-import type { ModelCreateOptions } from './types/index.js';
-import { Detection, Recognition } from './models/index.js';
+import type { ModelCreateOptions } from './types';
+import { Detection, Recognition } from './models';
 export declare class Ocr {
     #private;
     static create(options?: ModelCreateOptions): Promise<Ocr>;
@@ -7,5 +7,5 @@ export declare class Ocr {
         detection: Detection;
         recognition: Recognition;
     });
-    detect(image: string, options?: {}): Promise<import("./types/index.js").Line[]>;
+    detect(image: string, options?: {}): Promise<import("./types").Line[]>;
 }
