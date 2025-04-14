@@ -45,7 +45,7 @@ export class Recognition extends ModelBase {
             const output = await this.runModel({ modelData, onnxOptions });
             // use Dictoinary to decode output to text
             const lines = await this.decodeText(output);
-            allLines.push(...lines);
+            allLines.unshift(...lines);
         }
         // console.timeEnd('Recognition')
         const result = calculateBox({ lines: allLines, lineImages }, { accuracyMean: this.#accuracyMean });
