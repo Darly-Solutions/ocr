@@ -49,26 +49,41 @@ export class Detection extends ModelBase {
         });
     }
 }
-function isTextAreaValid(textBox, frameWidth, frameHeight, MIN_TEXT_AREA_PERCENT = 0.0037, MAX_TEXT_AREA_PERCENT = 0.9) {
-    const [x1, y1] = textBox[0]; // the first point
-    const [x2, y2] = textBox[2]; // the third point (in essence, x2, y2 is the opposite angle)
-    const textWidth = x2 - x1;
-    const textHeight = y2 - y1;
-    const textArea = textWidth * textHeight;
-    const frameArea = frameWidth * frameHeight;
-    const textAreaPercent = textArea / frameArea;
-    // Additional check for small text in the lower part and in the center
-    if (textAreaPercent < MIN_TEXT_AREA_PERCENT) {
-        // check if the text is small and is located in the lower part and in the center
-        return y1 > 0.8 * frameHeight && Math.abs((x1 + x2) / 2 - frameWidth / 2) < 0.02 * frameWidth;
+
+/**
+ * Перевіряє чи розмір прямокутника з текстом знаходиться в
+ * допустимому діапазоні. Дрібний текст у нижній частині кадру
+ * дозволяємо незалежно від X‑координати.
+ */
+function isTextAreaValid(
+    textBox,
+    frameWidth,
+    frameHeight,
+    MIN_PCT = 0.0037,
+    MAX_PCT = 0.9
+  ) {
+    const [x1, y1] = textBox[0];
+    const [x2, y2] = textBox[2];
+    const w = x2 - x1;
+    const h = y2 - y1;
+    const pct = (w * h) / (frameWidth * frameHeight);
+  
+    // 1️⃣ дуже маленький текст
+    if (pct < MIN_PCT) {
+      //     – якщо він у нижній 25 % кадру → залишаємо,
+      //       бо це можуть бути субтитри будь‑де по ширині
+      if (y1 > 0.75 * frameHeight) return true;
+      //     – інакше відсіюємо
+      return false;
     }
-    // checking for the maximum area of the text
-    if (textAreaPercent > MAX_TEXT_AREA_PERCENT) {
-        return false;
-    }
-    // If the text goes through both checks, we return true
+  
+    // 2️⃣ занадто великий блок → відсіюємо
+    if (pct > MAX_PCT) return false;
+  
+    // 3️⃣ нормальний розмір
     return true;
-}
+  }
+
 function getTextAngle(box) {
     const [x1, y1, x2, y2] = box;
     const dx = x2 - x1;

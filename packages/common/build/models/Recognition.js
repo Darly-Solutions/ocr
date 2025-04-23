@@ -78,6 +78,13 @@ export class Recognition extends ModelBase {
         });
     }
 }
+
+function looksLikeHandle(text) {
+    // перший токен починається з @   або ж у рядку є http/https‑посилання
+    return /^@\w{2,}$/i.test(text.trim().split(/\s+/)[0]) ||
+           /https?:\/\//i.test(text);
+  }
+
 function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
     const ignoredTokens = [0];
     const charList = [];
@@ -111,21 +118,27 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
     }
     return { text, mean };
 }
-function calculateBox({ lines, lineImages, }, { accuracyMean }) {
-    let mainLine = lines;
-    const box = lineImages;
-    for (const i in mainLine) {
-        const b = box[mainLine.length - Number(i) - 1].box;
-        for (const p of b) {
-            p[0] = p[0];
-            p[1] = p[1];
-        }
-        mainLine[i]['box'] = b;
-    }
-    mainLine = mainLine.filter((x) => x.mean >= accuracyMean);
+
+function calculateBox({ lines, lineImages }, { accuracyMean }) {
+    // 1. прикріпимо бокси до рядків
+    let mainLine = lines.map((l, i) => {
+      const imgIdx = lineImages.length - 1 - i;
+      const imgBox = lineImages[imgIdx]?.box;
+      return imgBox ? { ...l, box: imgBox } : null;
+    }).filter(Boolean);
+  
+    // 2. відкинемо слабкі OCR‑результати
+    mainLine = mainLine.filter(x => x.mean >= accuracyMean);
+  
+    // 3. згрупуємо й відсортуємо бокси (та ж логіка, що була у afAfRec)
     mainLine = afAfRec(mainLine);
+  
+    // 4. ФІЛЬТР: прибираємо соц‑нікнейми та URL
+    mainLine = mainLine.filter(item => !looksLikeHandle(item.text));
+  
     return mainLine;
-}
+  }
+
 function afAfRec(l) {
     const line = [];
     const ind = new Map();
