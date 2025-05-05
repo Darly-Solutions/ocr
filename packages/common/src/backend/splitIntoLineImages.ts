@@ -1,7 +1,7 @@
 import cv from '@techstark/opencv-js'
 import clipper from 'js-clipper'
 import { ImageRaw } from '#common/backend'
-import type { LineImage, ImageRaw as ImageRawType } from '#common/types'
+import type { ImageRaw as ImageRawType, LineImage } from '#common/types'
 
 type pointType = [number, number]
 type BoxType = [pointType, pointType, pointType, pointType]
@@ -38,6 +38,7 @@ export async function splitIntoLineImages(image: ImageRawType, sourceImage: Imag
     if (resultObj.sside < minSize + 2) {
       continue
     }
+
     function clip(n: number, min: number, max: number) {
       return Math.max(min, Math.min(n, max))
     }
@@ -105,7 +106,7 @@ function getMiniBoxes(contour: any) {
 }
 
 function unclip(box: pointsType) {
-  const unclip_ratio = 1.5
+  const unclip_ratio = 2.5
   const area = Math.abs(polygonPolygonArea(box))
   const length = polygonPolygonLength(box)
   const distance = (area * unclip_ratio) / length
@@ -125,9 +126,9 @@ function unclip(box: pointsType) {
   offset.Execute(expanded, distance)
   let expandedArr: pointsType = []
   expanded[0] &&
-    expanded[0].forEach((item) => {
-      expandedArr.push([item.X, item.Y])
-    })
+  expanded[0].forEach((item) => {
+    expandedArr.push([item.X, item.Y])
+  })
   expandedArr = [].concat(...(<any>expandedArr))
 
   return expandedArr

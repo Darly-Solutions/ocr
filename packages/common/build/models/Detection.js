@@ -1,7 +1,9 @@
 import invariant from 'tiny-invariant';
 import { defaultModels, ImageRaw, InferenceSession, splitIntoLineImages } from '../backend';
 import { ModelBase } from './ModelBase';
+import { measureSharpness } from '../backend/sharpness';
 const BASE_SIZE = 32;
+const Y_THRESHOLD = 35; // bound for filtering by blur level
 export class Detection extends ModelBase {
     static async create({ models, onnxOptions = {}, ...restOptions }) {
         const detectionPath = models?.detectionPath || defaultModels?.detectionPath;
@@ -37,8 +39,10 @@ export class Detection extends ModelBase {
         //   - findContours from the image
         //   - returns text boxes and line images
         const lineImages = await splitIntoLineImages(outputImage, inputImage);
+        const clustered = clusterLinesByY(lineImages);
+        const filteredLines = filterBySharpestInGroups(clustered);
         this.debugBoxImage(inputImage, lineImages, 'boxes.jpg');
-        return this.filterText(lineImages, inputImage.width, inputImage.height);
+        return this.filterText(filteredLines, inputImage.width, inputImage.height);
     }
     filterText(lineImages, frameWidth, frameHeight) {
         return lineImages.filter(lineImage => {
@@ -48,6 +52,67 @@ export class Detection extends ModelBase {
                 !isSubtitleOrHeading(box, frameWidth, frameHeight);
         });
     }
+}
+function filterBySharpestInGroups(clusters, minSharpnessRatio = 0.7) {
+    const groupSharpnesses = [];
+    clusters.forEach((cluster, idx) => {
+        console.log(`\nGroup ${idx + 1} (${cluster.lines.length} lines):`);
+        let maxSharpness = -Infinity;
+        let sharpestLine = null;
+        cluster.lines.forEach((line, i) => {
+            try {
+                const sharpness = measureSharpness(line.image);
+                console.log(`  Line ${i + 1}: clarity = ${sharpness.toFixed(2)}`);
+                if (sharpness > maxSharpness) {
+                    maxSharpness = sharpness;
+                    sharpestLine = line;
+                }
+            }
+            catch (err) {
+                console.warn(`  Line ${i + 1}: error measuring clarity`, err);
+            }
+        });
+        if (sharpestLine) {
+            groupSharpnesses.push({
+                sharpness: maxSharpness,
+                line: sharpestLine,
+                groupIndex: idx,
+            });
+            console.log(`➤ Chosen string with clarity ${maxSharpness.toFixed(2)}`);
+        }
+    });
+    // Find the maximum
+    const maxSharpnessOverall = Math.max(...groupSharpnesses.map(g => g.sharpness));
+    // leave groups that have clarity> = X% of the maximum
+    const threshold = maxSharpnessOverall * minSharpnessRatio;
+    const keptGroups = groupSharpnesses.filter(g => g.sharpness >= threshold);
+    console.log(`\nMax sharpness: ${maxSharpnessOverall.toFixed(2)}, keeping groups ≥ ${(threshold).toFixed(2)}:`);
+    keptGroups.forEach(g => {
+        console.log(`  ✔ Group ${g.groupIndex + 1} (sharpness: ${g.sharpness.toFixed(2)})`);
+    });
+    return keptGroups.map(g => g.line);
+}
+function clusterLinesByY(lines, yThreshold = Y_THRESHOLD) {
+    const clusters = [];
+    for (const line of lines) {
+        // center by y
+        const yCenter = (line.box[0][1] + line.box[2][1]) / 2;
+        // looking for a cluster with a similar y
+        let found = false;
+        for (const cluster of clusters) {
+            if (Math.abs(cluster.y - yCenter) < yThreshold) {
+                cluster.lines.push(line);
+                found = true;
+                break;
+            }
+        }
+        // haven't found it - create a new cluster
+        if (!found) {
+            clusters.push({ y: yCenter, lines: [line] });
+        }
+    }
+    console.log(`Clusters by Y: ${clusters.length}`);
+    return clusters;
 }
 function isTextAreaValid(textBox, frameWidth, frameHeight, MIN_TEXT_AREA_PERCENT = 0.0037, MAX_TEXT_AREA_PERCENT = 0.9) {
     const [x1, y1] = textBox[0]; // the first point
