@@ -79,7 +79,7 @@ function getMiniBoxes(contour) {
     return { points: box, sside: side };
 }
 function unclip(box) {
-    const unclip_ratio = 1.5;
+    const unclip_ratio = 2.5;
     const area = Math.abs(polygonPolygonArea(box));
     const length = polygonPolygonLength(box);
     const distance = (area * unclip_ratio) / length;
