@@ -74,6 +74,10 @@ export class Recognition extends ModelBase {
             if (text.length <= 2 && !/\d/.test(text)) {
                 return false;
             }
+            // Ignore lines that start with '#' or '@'
+            if (text.startsWith('#') || text.startsWith('@')) {
+                return false;
+            }
             return true;
         });
     }
