@@ -95,7 +95,12 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
                 continue;
             }
         }
-        charList.push(dictionary[textIndex[idx] - 1]);
+        if (textIndex[idx] === 96) {
+            charList.push(' ');
+        }
+        else {
+            charList.push(dictionary[textIndex[idx] - 1]);
+        }
         if (textProb) {
             confList.push(textProb[idx]);
         }
@@ -176,24 +181,33 @@ function afAfRec(l) {
     }
     const boxes = groupBoxesByMidlineDifference([...ind.keys()]);
     for (const i of boxes) {
-        const t = [];
-        let m = 0;
+        if (i.length === 0)
+            continue; // Skip empty arrays
+        const texts = [];
+        let meanSum = 0;
         for (const j of i) {
-            if (typeof ind.get(j) !== 'number')
+            const index = ind.get(j);
+            if (index === undefined) {
+                console.warn('Missing index for box:', j);
                 continue;
-            const x = l[ind.get(j)];
-            t.push(x.text);
-            m += x.mean;
+            }
+            const x = l[index];
+            texts.push(x.text);
+            meanSum += x.mean;
         }
-        let box = undefined;
-        if (i.at(0) && i.at(-1)) {
-            box = [i.at(0)[0], i.at(-1)[1], i.at(-1)[2], i.at(0)[3]];
+        if (texts.length > 0) {
+            const firstBox = i[0];
+            const lastBox = i[i.length - 1];
+            if (!firstBox || !lastBox) {
+                console.warn('Invalid box structure');
+                continue;
+            }
+            line.push({
+                mean: meanSum / i.length,
+                text: texts.join(' '),
+                box: [firstBox[0], lastBox[1], lastBox[2], firstBox[3]]
+            });
         }
-        line.push({
-            mean: m / i.length,
-            text: t.join(' '),
-            box: box,
-        });
     }
     return line;
 }
