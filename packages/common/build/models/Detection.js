@@ -17,7 +17,7 @@ export class Detection extends ModelBase {
         //   - image width and height must be a multiple of 32
         //   - bigger image -> more accurate result, but takes longer time
         // inputImage = await Image.resize(image, multipleOfBaseSize(image, { maxSize: 960 }))
-        const inputImage = await image.resize(multipleOfBaseSize(image));
+        const inputImage = await image.resize(multipleOfBaseSize(image, { maxSize: 1024 }));
         // this.debugImage(inputImage, 'out1-multiple-of-base-size.jpg')
         // Covert image data to model data
         //   - Using `(RGB / 255 - mean) / std` formula
