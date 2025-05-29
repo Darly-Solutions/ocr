@@ -1,6 +1,7 @@
 import {ImageRaw, InferenceSession} from '#common/backend'
 import type {ImageRaw as ImageRawType, ModelCreateOptions, ModelData} from '#common/types'
-import {Mat} from "@techstark/opencv-js";
+import cv, {Mat} from "@techstark/opencv-js";
+
 import type {InferenceSession as InferenceSessionCommon} from 'onnxruntime-common'
 import {Tensor} from 'onnxruntime-common'
 import invariant from 'tiny-invariant'

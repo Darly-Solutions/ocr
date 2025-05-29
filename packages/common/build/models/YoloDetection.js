@@ -1,5 +1,5 @@
 import { ImageRaw, InferenceSession } from '../backend';
-import { Mat } from "@techstark/opencv-js";
+import cv, { Mat } from "@techstark/opencv-js";
 import { Tensor } from 'onnxruntime-common';
 import invariant from 'tiny-invariant';
 import { ModelBase } from './ModelBase';

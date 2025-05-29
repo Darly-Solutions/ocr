@@ -2,6 +2,7 @@ import { defaultModels, ImageRaw, InferenceSession, splitIntoLineImages } from '
 import invariant from 'tiny-invariant';
 import { ModelBase } from './ModelBase';
 const BASE_SIZE = 32;
+const Y_THRESHOLD = 35; // bound for filtering by blur level
 export class Detection extends ModelBase {
     static async create({ models, onnxOptions = {}, ...restOptions }) {
         const detectionPath = models?.detectionPath || defaultModels?.detectionPath;
@@ -14,7 +15,7 @@ export class Detection extends ModelBase {
         //   - image width and height must be a multiple of 32
         //   - bigger image -> more accurate result, but takes longer time
         // inputImage = await Image.resize(image, multipleOfBaseSize(image, { maxSize: 960 }))
-        const inputImage = await image.resize(multipleOfBaseSize(image));
+        const inputImage = await image.resize(multipleOfBaseSize(image, { maxSize: 1024 }));
         // this.debugImage(inputImage, 'out1-multiple-of-base-size.jpg')
         // Covert image data to model data
         //   - Using `(RGB / 255 - mean) / std` formula
@@ -35,9 +36,7 @@ export class Detection extends ModelBase {
         // Find text boxes, split image into lines
         //   - findContours from the image
         //   - returns text boxes and line images
-        const lineImages = await splitIntoLineImages(outputImage, inputImage);
-        this.debugBoxImage(inputImage, lineImages, 'boxes.jpg');
-        return lineImages;
+        return await splitIntoLineImages(outputImage, inputImage);
     }
 }
 function multipleOfBaseSize(image, { maxSize } = {}) {
