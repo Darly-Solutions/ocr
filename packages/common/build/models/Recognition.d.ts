@@ -1,6 +1,6 @@
 import type { InferenceSession as InferenceSessionCommon, Tensor } from 'onnxruntime-common';
-import type { Dictionary, Line, LineImage, ModelBaseConstructorArg, ModelCreateOptions } from '../types/index.js';
-import { ModelBase } from './ModelBase.js';
+import type { Dictionary, Line, LineImage, ModelBaseConstructorArg, ModelCreateOptions } from '../types';
+import { ModelBase } from './ModelBase';
 export declare class Recognition extends ModelBase {
     #private;
     static create({ models, onnxOptions, ...restOptions }: ModelCreateOptions): Promise<Recognition>;

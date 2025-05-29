@@ -1,11 +1,12 @@
-import type { ModelCreateOptions } from './types/index.js';
-import { Detection, Recognition } from './models/index.js';
+import type { ModelCreateOptions } from './types';
+import { Detection, Recognition, YoloDetection } from './models';
 export declare class Ocr {
     #private;
-    static create(options?: ModelCreateOptions): Promise<Ocr>;
-    constructor({ detection, recognition, }: {
+    constructor({ detection, recognition, yoloDetection, }: {
         detection: Detection;
         recognition: Recognition;
+        yoloDetection: YoloDetection;
     });
-    detect(image: string, options?: {}): Promise<import("./types/index.js").Line[]>;
+    static create(options?: ModelCreateOptions): Promise<Ocr>;
+    detect(image: string, options?: {}): Promise<import("./types").Line[]>;
 }

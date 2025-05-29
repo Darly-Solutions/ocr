@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant';
-import { FileUtils, InferenceSession, defaultModels } from '../backend/index.js';
-import { ModelBase } from './ModelBase.js';
+import { FileUtils, InferenceSession, defaultModels } from '../backend';
+import { ModelBase } from './ModelBase';
 export class Recognition extends ModelBase {
     #dictionary;
     #accuracyMean;

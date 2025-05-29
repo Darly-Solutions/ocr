@@ -1,9 +1,9 @@
+import type { ModelCreateOptions } from '../types';
 import type { InferenceSession as InferenceSessionCommon } from 'onnxruntime-common';
-import type { ModelCreateOptions } from '../types/index.js';
-import { ModelBase } from './ModelBase.js';
+import { ModelBase } from './ModelBase';
 export declare class Detection extends ModelBase {
     static create({ models, onnxOptions, ...restOptions }: ModelCreateOptions): Promise<Detection>;
-    run(path: string, { onnxOptions }?: {
+    run(image: any, { onnxOptions }?: {
         onnxOptions?: InferenceSessionCommon.RunOptions;
-    }): Promise<import("../types/index.js").LineImage[]>;
+    }): Promise<import("../types").LineImage[]>;
 }

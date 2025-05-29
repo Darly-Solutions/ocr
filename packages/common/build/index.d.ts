@@ -1,6 +1,6 @@
-import { Ocr } from './Ocr.js';
+import { Ocr } from './Ocr';
 export default Ocr;
-export { registerBackend } from './backend/backend.js';
-export * from './backend/FileUtilsBase.js';
-export * from './backend/ImageRawBase.js';
-export type * from './types/index.js';
+export { registerBackend } from './backend/backend';
+export * from './backend/FileUtilsBase';
+export * from './backend/ImageRawBase';
+export type * from './types';

@@ -1,3 +1,3 @@
-export * from './backend.js';
-export * from './FileUtilsBase.js';
-export * from './ImageRawBase.js';
+export * from './backend';
+export * from './FileUtilsBase';
+export * from './ImageRawBase';

@@ -1,4 +1,4 @@
-import type { FileUtils as FileUtilsType, ImageRaw as ImageRawType, InferenceSession as InferenceSessionType, ModelCreateOptions as ModelCreateOptionsType, SplitIntoLineImages as SplitIntoLineImagesType } from '../types/index.js';
+import type { FileUtils as FileUtilsType, ImageRaw as ImageRawType, InferenceSession as InferenceSessionType, ModelCreateOptions as ModelCreateOptionsType, SplitIntoLineImages as SplitIntoLineImagesType } from '../types';
 declare let FileUtils: FileUtilsType | any;
 declare let ImageRaw: ImageRawType | any;
 declare let InferenceSession: InferenceSessionType | any;

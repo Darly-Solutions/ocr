@@ -7,14 +7,14 @@ export class ModelBase {
         this.options = options;
     }
     async runModel({ modelData, onnxOptions = {}, }) {
-        const input = this.#prepareInput(modelData);
+        const input = this.prepareInput(modelData);
         const outputs = await this.#model.run({
             [this.#model.inputNames[0]]: input,
         }, onnxOptions);
         const output = outputs[this.#model.outputNames[0]];
         return output;
     }
-    #prepareInput(modelData) {
+    prepareInput(modelData) {
         const input = Float32Array.from(modelData.data);
         return new Tensor('float32', input, [1, 3, modelData.height, modelData.width]);
     }

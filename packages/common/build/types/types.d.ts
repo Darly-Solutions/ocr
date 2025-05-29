@@ -1,7 +1,7 @@
+import { ImageRawBase as ImageRaw } from '../backend/ImageRawBase';
+import type { splitIntoLineImages } from '../backend/splitIntoLineImages';
 import { InferenceSession } from 'onnxruntime-common';
-import { ImageRawBase as ImageRaw } from '../backend/ImageRawBase.js';
-import type { splitIntoLineImages } from '../backend/splitIntoLineImages.js';
-export { FileUtilsBase as FileUtils } from '../backend/FileUtilsBase.js';
+export { FileUtilsBase as FileUtils } from '../backend/FileUtilsBase';
 export { ImageRaw, InferenceSession };
 export type SplitIntoLineImages = typeof splitIntoLineImages;
 export type ReshapeOptions = {
@@ -55,6 +55,7 @@ export interface ModelBaseOptions {
 }
 export interface ModelCreateOptions extends ModelBaseOptions {
     models?: {
+        yoloDetectionPath: string;
         detectionPath: string;
         recognitionPath: string;
         dictionaryPath: string;
