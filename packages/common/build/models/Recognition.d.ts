@@ -3,8 +3,8 @@ import type { Dictionary, Line, LineImage, ModelBaseConstructorArg, ModelCreateO
 import { ModelBase } from './ModelBase';
 export declare class Recognition extends ModelBase {
     #private;
-    static create({ models, onnxOptions, ...restOptions }: ModelCreateOptions): Promise<Recognition>;
     constructor(options: ModelBaseConstructorArg, dictionary: Dictionary);
+    static create({ models, onnxOptions, ...restOptions }: ModelCreateOptions): Promise<Recognition>;
     run(lineImages: LineImage[], { onnxOptions }?: {
         onnxOptions?: InferenceSessionCommon.RunOptions;
     }): Promise<Line[]>;

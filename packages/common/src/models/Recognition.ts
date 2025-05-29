@@ -1,12 +1,18 @@
 import type { InferenceSession as InferenceSessionCommon, Tensor } from 'onnxruntime-common'
 import invariant from 'tiny-invariant'
-import { FileUtils, InferenceSession, defaultModels } from '#common/backend'
+import { defaultModels, FileUtils, InferenceSession } from '#common/backend'
 import type { Dictionary, Line, LineImage, ModelBaseConstructorArg, ModelCreateOptions } from '#common/types'
 import { ModelBase } from './ModelBase'
 
 export class Recognition extends ModelBase {
   #dictionary: Dictionary
   #accuracyMean: number
+
+  constructor(options: ModelBaseConstructorArg, dictionary: Dictionary) {
+    super(options)
+    this.#dictionary = dictionary
+    this.#accuracyMean = options.options.accuracyMean ?? 0.5
+  }
 
   static async create({ models, onnxOptions = {}, ...restOptions }: ModelCreateOptions) {
     const recognitionPath = models?.recognitionPath || defaultModels?.recognitionPath
@@ -17,12 +23,6 @@ export class Recognition extends ModelBase {
     const dictionaryText = await FileUtils.read(dictionaryPath)
     const dictionary = [...dictionaryText.split('\n'), ' ']
     return new Recognition({ model, options: restOptions }, dictionary)
-  }
-
-  constructor(options: ModelBaseConstructorArg, dictionary: Dictionary) {
-    super(options)
-    this.#dictionary = dictionary
-    this.#accuracyMean = options.options.accuracyMean ?? 0.5
   }
 
   async run(lineImages: LineImage[], { onnxOptions = {} }: { onnxOptions?: InferenceSessionCommon.RunOptions } = {}) {
@@ -80,7 +80,19 @@ export class Recognition extends ModelBase {
       line[ml] = decode(this.#dictionary, predsIdx, predsProb, true)
       ml--
     }
-    return line
+
+    return line.filter(item => {
+      const text = item.text;
+      if (text.length <= 2 && !/\d/.test(text)) {
+        return false;
+      }
+      // Ignore lines that start with '#' or '@'
+      if (text.startsWith('#') || text.startsWith('@')) {
+        return false;
+      }
+
+      return true;
+    });
   }
 }
 
@@ -97,7 +109,12 @@ function decode(dictionary: string[], textIndex: number[], textProb: number[], i
         continue
       }
     }
-    charList.push(dictionary[textIndex[idx] - 1])
+    if (textIndex[idx] === 96) {
+      charList.push(' ');
+    } else {
+      charList.push(dictionary[textIndex[idx] - 1]);
+    }
+
     if (textProb) {
       confList.push(textProb[idx])
     } else {
@@ -118,14 +135,14 @@ function decode(dictionary: string[], textIndex: number[], textProb: number[], i
 }
 
 function calculateBox({
-  lines,
-  lineImages,
-}: {
+                        lines,
+                        lineImages,
+                      }: {
   lines: Line[]
   lineImages: LineImage[]
 }, {
-  accuracyMean
-}: {
+                        accuracyMean
+                      }: {
   accuracyMean: number
 }) {
   let mainLine = lines
@@ -195,24 +212,40 @@ function afAfRec(l: Line[]) {
   const boxes = groupBoxesByMidlineDifference([...ind.keys()])
 
   for (const i of boxes) {
-    const t = []
-    let m = 0
+    if (i.length === 0) continue;  // Skip empty arrays
+
+    const texts: string[] = [];
+    let meanSum = 0;
+
     for (const j of i) {
-      if(typeof ind.get(j) !== 'number') continue;
-      const x = l[ind.get(j)!]
-      t.push(x.text)
-      m += x.mean
+      const index = ind.get(j);
+      if (index === undefined) {
+        console.warn('Missing index for box:', j);
+        continue;
+      }
+
+      const x = l[index];
+      texts.push(x.text);
+      meanSum += x.mean;
     }
-    let box = undefined
-    if(i.at(0) && i.at(-1)) {
-        box = [i.at(0)![0], i.at(-1)![1], i.at(-1)![2], i.at(0)![3]]
+
+    if (texts.length > 0) {
+      const firstBox = i[0];
+      const lastBox = i[i.length - 1];
+
+      if (!firstBox || !lastBox) {
+        console.warn('Invalid box structure');
+        continue;
+      }
+
+      line.push({
+        mean: meanSum / i.length,
+        text: texts.join(' '),
+        box: [firstBox[0], lastBox[1], lastBox[2], firstBox[3]]
+      });
     }
-    line.push({
-      mean: m / i.length,
-      text: t.join(' '),
-      box: box,
-    })
   }
+
   return line
 }
 

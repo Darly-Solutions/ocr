@@ -1,5 +1,5 @@
-import type { ImageRaw, LineImage, ModelBaseConstructorArg, ModelBaseOptions, ModelData, ReshapeOptions } from '../types';
 import { type InferenceSession as InferenceSessionCommon, Tensor } from 'onnxruntime-common';
+import type { ImageRaw, LineImage, ModelBaseConstructorArg, ModelBaseOptions, ModelData, ReshapeOptions } from '../types';
 export declare class ModelBase {
     #private;
     options: ModelBaseOptions;
@@ -8,7 +8,6 @@ export declare class ModelBase {
         modelData: ModelData;
         onnxOptions?: InferenceSessionCommon.RunOptions;
     }): Promise<Tensor>;
-    prepareInput(modelData: ModelData): import("onnxruntime-common").TypedTensor<"float32">;
     imageToInput(image: ImageRaw, { mean, std }: ReshapeOptions): ModelData;
     debugImage(image: ImageRaw | any, path: string): void;
     debugBoxImage(sourceImage: ImageRaw | any, lineImages: LineImage[], path: string): Promise<void>;

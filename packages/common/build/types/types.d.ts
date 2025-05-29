@@ -1,6 +1,6 @@
+import { InferenceSession } from 'onnxruntime-common';
 import { ImageRawBase as ImageRaw } from '../backend/ImageRawBase';
 import type { splitIntoLineImages } from '../backend/splitIntoLineImages';
-import { InferenceSession } from 'onnxruntime-common';
 export { FileUtilsBase as FileUtils } from '../backend/FileUtilsBase';
 export { ImageRaw, InferenceSession };
 export type SplitIntoLineImages = typeof splitIntoLineImages;
@@ -55,7 +55,6 @@ export interface ModelBaseOptions {
 }
 export interface ModelCreateOptions extends ModelBaseOptions {
     models?: {
-        yoloDetectionPath: string;
         detectionPath: string;
         recognitionPath: string;
         dictionaryPath: string;
