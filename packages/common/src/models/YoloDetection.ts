@@ -35,11 +35,11 @@ export class YoloDetection extends ModelBase {
         const croppedImages = [];
 
         for (const item of processed) {
-            croppedImages.push(...splitIntoLineImagesNew(inputImage, item));
+            croppedImages.push(splitIntoLineImagesNew(inputImage, item));
         }
 
         croppedImages.forEach((lineImage, index) => {
-            this.debugImage(lineImage.image, `yolo_box_${Math.random()}_${index}.jpg`)
+            this.debugImage(lineImage, `yolo_box_${Math.random()}_${index}.jpg`)
         });
 
 

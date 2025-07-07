@@ -9,4 +9,6 @@ export declare class Ocr {
     });
     static create(options?: ModelCreateOptions): Promise<Ocr>;
     detect(image: string, options?: {}): Promise<import("./types").Line[]>;
+    runYolo(image: string, options?: {}): Promise<string[]>;
+    runOcr(images: string[], options?: {}): Promise<import("./types").Line[]>;
 }

@@ -28,12 +28,24 @@ export class Ocr {
     }
 
     async detect(image: string, options = {}) {
+        // 1. run YOLO pipeline
+        const yoloImages = await this.runYolo(image, options);
+
+        return this.runOcr(yoloImages, options);
+    }
+
+    async runYolo(image: string, options = {}): Promise<string[]> {
+        return await this.#yoloDetection.run(image, options);
+    }
+
+    async runOcr(images: string[], options = {}) {
         const texts = [];
-        const yoloImages = await this.#yoloDetection.run(image, options);
-        for (const yoloImage of yoloImages) {
-            const lineImages = await this.#detection.run(yoloImage, options)
+        for (const image of images) {
+            // run ocr pipeline for each YOLO output
+            const lineImages = await this.#detection.run(image, options)
             texts.push(...await this.#recognition.run(lineImages, options))
         }
+
         return texts
     }
 }
