@@ -7,7 +7,7 @@ export declare class Ocr {
         recognition: Recognition;
         yoloDetection: YoloDetection;
     });
-    static create(options?: ModelCreateOptions): Promise<Ocr>;
+    static create(options: ModelCreateOptions): Promise<Ocr>;
     detect(image: string, options?: {}): Promise<import("./types").Line[]>;
     runYolo(image: string, options?: {}): Promise<string[]>;
     runOcr(images: string[], options?: {}): Promise<import("./types").Line[]>;

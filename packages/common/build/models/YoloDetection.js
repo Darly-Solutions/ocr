@@ -1,5 +1,6 @@
 import { ImageRaw, InferenceSession } from '../backend';
 import cv, { Mat } from "@techstark/opencv-js";
+import path from 'node:path';
 import { Tensor } from 'onnxruntime-common';
 import invariant from 'tiny-invariant';
 import { ModelBase } from './ModelBase';
@@ -13,8 +14,9 @@ export class YoloDetection extends ModelBase {
         const model = await InferenceSession.create(detectionPath, onnxOptions);
         return new YoloDetection({ model, options: restOptions });
     }
-    async run(path, { onnxOptions = {} } = {}) {
-        const image = await ImageRaw.open(path);
+    async run(imagePath, { onnxOptions = {} } = {}) {
+        const image = await ImageRaw.open(imagePath);
+        const originalName = path.basename(imagePath, path.extname(imagePath));
         const inputImage = await image.resize({ width: 640, height: 640, fit: 'fill' });
         const modelData = this.imageToInput(inputImage);
         const modelOutput = await this.runModel({ modelData, onnxOptions });
@@ -23,11 +25,7 @@ export class YoloDetection extends ModelBase {
         for (const item of processed) {
             croppedImages.push(splitIntoLineImagesNew(inputImage, item));
         }
-        croppedImages.forEach((lineImage, index) => {
-            this.debugImage(lineImage, `yolo_box_${Math.random()}_${index}.jpg`);
-        });
-        console.log('croppedImages', croppedImages);
-        return croppedImages;
+        return Promise.all(croppedImages.map((lineImage, index) => this.saveImage(lineImage, `${originalName}_box_${index}.jpg`)));
     }
     imageToInput(image) {
         const R = [];
@@ -76,6 +74,12 @@ export class YoloDetection extends ModelBase {
             boxes = boxes.filter(box => iou(boxes[0], box) < 0.7);
         }
         return result;
+    }
+    async saveImage(image, path) {
+        const { outputDir } = this.options;
+        const outputPath = `${outputDir}/${path}`;
+        await image.write(outputPath);
+        return outputPath;
     }
 }
 /**

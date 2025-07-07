@@ -1,6 +1,7 @@
 import {ImageRaw, InferenceSession} from '#common/backend'
 import type {ImageRaw as ImageRawType, ModelCreateOptions, ModelData} from '#common/types'
 import cv, {Mat} from "@techstark/opencv-js";
+import path from 'node:path'
 
 import type {InferenceSession as InferenceSessionCommon} from 'onnxruntime-common'
 import {Tensor} from 'onnxruntime-common'
@@ -22,8 +23,11 @@ export class YoloDetection extends ModelBase {
         return new YoloDetection({model, options: restOptions})
     }
 
-    async run(path: string, {onnxOptions = {}}: { onnxOptions?: InferenceSessionCommon.RunOptions } = {}) {
-        const image = await ImageRaw.open(path);
+    async run(imagePath: string, {onnxOptions = {}}: {
+        onnxOptions?: InferenceSessionCommon.RunOptions
+    } = {}): Promise<string[]> {
+        const image = await ImageRaw.open(imagePath);
+        const originalName = path.basename(imagePath, path.extname(imagePath));
 
         const inputImage = await image.resize({width: 640, height: 640, fit: 'fill'});
 
@@ -38,13 +42,9 @@ export class YoloDetection extends ModelBase {
             croppedImages.push(splitIntoLineImagesNew(inputImage, item));
         }
 
-        croppedImages.forEach((lineImage, index) => {
-            this.debugImage(lineImage, `yolo_box_${Math.random()}_${index}.jpg`)
-        });
-
-
-        console.log('croppedImages', croppedImages);
-        return croppedImages;
+        return Promise.all(
+            croppedImages.map((lineImage, index) => this.saveImage(lineImage, `${originalName}_box_${index}.jpg`))
+        );
     }
 
     imageToInput(image: ImageRawType) {
@@ -99,6 +99,16 @@ export class YoloDetection extends ModelBase {
         }
 
         return result;
+    }
+
+    async saveImage(image: ImageRawType | any, path: string): Promise<string> {
+        const {outputDir} = this.options
+
+        const outputPath = `${outputDir}/${path}`;
+
+        await image.write(outputPath);
+
+        return outputPath;
     }
 }
 

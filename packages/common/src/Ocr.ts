@@ -20,7 +20,7 @@ export class Ocr {
         this.#yoloDetection = yoloDetection
     }
 
-    static async create(options: ModelCreateOptions = {}) {
+    static async create(options: ModelCreateOptions) {
         const yoloDetection = await YoloDetection.create(options)
         const detection = await Detection.create(options)
         const recognition = await Recognition.create(options)
@@ -35,7 +35,7 @@ export class Ocr {
     }
 
     async runYolo(image: string, options = {}): Promise<string[]> {
-        return await this.#yoloDetection.run(image, options);
+        return this.#yoloDetection.run(image, options);
     }
 
     async runOcr(images: string[], options = {}) {
