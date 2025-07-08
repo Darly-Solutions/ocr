@@ -1,14 +1,11 @@
-import type { ModelCreateOptions } from './types';
-import { Detection, Recognition, YoloDetection } from './models';
+import type { Line, ModelCreateOptions } from './types';
+import { Detection, Recognition } from './models';
 export declare class Ocr {
     #private;
-    constructor({ detection, recognition, yoloDetection, }: {
+    constructor({ detection, recognition }: {
         detection: Detection;
         recognition: Recognition;
-        yoloDetection: YoloDetection;
     });
     static create(options: ModelCreateOptions): Promise<Ocr>;
-    detect(image: string, options?: {}): Promise<import("./types").Line[]>;
-    runYolo(image: string, options?: {}): Promise<string[]>;
-    runOcr(images: string[], options?: {}): Promise<import("./types").Line[]>;
+    detect(image: string, options?: {}): Promise<Line[]>;
 }

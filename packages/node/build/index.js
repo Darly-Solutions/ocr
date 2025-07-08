@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
 import BaseOcr, { registerBackend } from '@darly-solutions/ocr-common';
 import { splitIntoLineImages } from '@darly-solutions/ocr-common/splitIntoLineImages';
 import defaultModels from '@darly-solutions/ocr-models/node';
+import fs from 'node:fs/promises';
 import { InferenceSession } from 'onnxruntime-node';
 import { FileUtils } from './FileUtils';
 import { ImageRaw } from './ImageRaw';
@@ -14,7 +14,7 @@ registerBackend({
 });
 // biome-ignore lint/complexity/noStaticOnlyClass: <explanation>
 class Ocr extends BaseOcr {
-    static async create(options = {}) {
+    static async create(options) {
         const ocr = await BaseOcr.create(options);
         if (options.debugOutputDir) {
             await fs.mkdir(options.debugOutputDir, { recursive: true });

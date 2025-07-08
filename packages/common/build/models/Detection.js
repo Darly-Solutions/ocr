@@ -10,7 +10,8 @@ export class Detection extends ModelBase {
         const model = await InferenceSession.create(detectionPath, onnxOptions);
         return new Detection({ model, options: restOptions });
     }
-    async run(image, { onnxOptions = {} } = {}) {
+    async run(path, { onnxOptions = {} } = {}) {
+        const image = await ImageRaw.open(path);
         // Resize image to multiple of 32
         //   - image width and height must be a multiple of 32
         //   - bigger image -> more accurate result, but takes longer time

@@ -1,5 +1,5 @@
-import invariant from 'tiny-invariant';
 import { defaultModels, FileUtils, InferenceSession } from '../backend';
+import invariant from 'tiny-invariant';
 import { ModelBase } from './ModelBase';
 export class Recognition extends ModelBase {
     #dictionary;
@@ -48,8 +48,7 @@ export class Recognition extends ModelBase {
             allLines.unshift(...lines);
         }
         // console.timeEnd('Recognition')
-        const result = calculateBox({ lines: allLines, lineImages }, { accuracyMean: this.#accuracyMean });
-        return result;
+        return calculateBox({ lines: allLines, lineImages }, { accuracyMean: this.#accuracyMean });
     }
     decodeText(output) {
         const data = output;

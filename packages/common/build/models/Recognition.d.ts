@@ -1,5 +1,5 @@
-import type { InferenceSession as InferenceSessionCommon, Tensor } from 'onnxruntime-common';
 import type { Dictionary, Line, LineImage, ModelBaseConstructorArg, ModelCreateOptions } from '../types';
+import type { InferenceSession as InferenceSessionCommon, Tensor } from 'onnxruntime-common';
 import { ModelBase } from './ModelBase';
 export declare class Recognition extends ModelBase {
     #private;
