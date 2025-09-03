@@ -108,7 +108,7 @@ function decode(dictionary: string[], textIndex: number[], textProb: number[], i
                 continue
             }
         }
-        if (textIndex[idx] === 96) {
+        if (textIndex[idx] === 18384) {
             charList.push(' ');
         } else {
             charList.push(dictionary[textIndex[idx] - 1]);

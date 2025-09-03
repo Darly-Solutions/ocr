@@ -94,7 +94,7 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
                 continue;
             }
         }
-        if (textIndex[idx] === 96) {
+        if (textIndex[idx] === 18384) {
             charList.push(' ');
         }
         else {
