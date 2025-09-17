@@ -6,6 +6,8 @@ import {
 } from '../backend';
 import invariant from 'tiny-invariant';
 import { ModelBase } from './ModelBase';
+import pathLib from 'path';
+
 const BASE_SIZE = 32;
 const Y_THRESHOLD = 35; // bound for filtering by blur level
 export class Detection extends ModelBase {
@@ -17,6 +19,8 @@ export class Detection extends ModelBase {
   }
   async run(path, { onnxOptions = {} } = {}) {
     const image = await ImageRaw.open(path);
+
+    const fileName = pathLib.basename(path, pathLib.extname(path));
     // Resize image to multiple of 32
     //   - image width and height must be a multiple of 32
     //   - bigger image -> more accurate result, but takes longer time
@@ -25,6 +29,13 @@ export class Detection extends ModelBase {
       multipleOfBaseSize(image, { maxSize: 1024 }),
     );
     // this.debugImage(inputImage, 'out1-multiple-of-base-size.jpg')
+    this.debugImage(
+      image,
+      `before-det__${fileName}__${Date.now()}_${String(
+        Math.floor(Math.random() * 1_000_000) + 1,
+      ).padStart(7, '0')}.jpg`,
+    );
+
     // Covert image data to model data
     //   - Using `(RGB / 255 - mean) / std` formula
     //   - omit reshapeOptions (mean/std) is more accurate, can creaet a run option for them
@@ -45,7 +56,8 @@ export class Detection extends ModelBase {
     // Find text boxes, split image into lines
     //   - findContours from the image
     //   - returns text boxes and line images
-    return await splitIntoLineImages(outputImage, inputImage);
+    // return await splitIntoLineImages(outputImage, inputImage);
+    return [await splitIntoLineImages(outputImage, inputImage), fileName];
   }
 }
 function multipleOfBaseSize(image, { maxSize } = {}) {

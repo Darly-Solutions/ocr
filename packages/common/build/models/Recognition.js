@@ -21,7 +21,7 @@ export class Recognition extends ModelBase {
     const dictionary = [...dictionaryText.split('\n'), ' '];
     return new Recognition({ model, options: restOptions }, dictionary);
   }
-  async run(lineImages, { onnxOptions = {} } = {}) {
+  async run(lineImages, { onnxOptions = {} } = {}, fileName) {
     const modelDatas = await Promise.all(
       // Detect text from each line image
       lineImages.map(async (lineImage, index) => {
@@ -31,7 +31,14 @@ export class Recognition extends ModelBase {
         const image = await lineImage.image.resize({
           height: 48,
         });
+
         // this.debugImage(lineImage.image, `./output/out9-line-${index}.jpg`)
+        this.debugImage(
+          lineImage.image,
+          `before-rec__${fileName}__[${index}]__${Date.now()}_${String(
+            Math.floor(Math.random() * 1_000_000) + 1,
+          ).padStart(7, '0')}.jpg`,
+        );
         // this.debugImage(image, `./output/out9-line-${index}-resized.jpg`)
         // transform image data to model data
         const modelData = this.imageToInput(image, {
