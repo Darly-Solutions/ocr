@@ -48,7 +48,9 @@ export class Recognition extends ModelBase {
       const output = await this.runModel({ modelData, onnxOptions });
       // use Dictoinary to decode output to text
       const lines = await this.decodeText(output);
-      allLines.unshift(...lines);
+
+      // allLines.unshift(...lines);
+      allLines.push(...lines);
     }
     // console.timeEnd('Recognition')
     return calculateBox(
@@ -77,16 +79,27 @@ export class Recognition extends ModelBase {
       line[ml] = decode(this.#dictionary, predsIdx, predsProb, true);
       ml--;
     }
-    return line.filter((item) => {
+    // return line.filter((item) => {
+    //   const text = item.text;
+    //   if (text.length <= 2 && !/\d/.test(text)) {
+    //     return false;
+    //   }
+    //   // Ignore lines that start with '#' or '@'
+    //   if (text.startsWith('#') || text.startsWith('@')) {
+    //     return false;
+    //   }
+    //   return true;
+    // });
+    return line.map((item) => {
       const text = item.text;
       if (text.length <= 2 && !/\d/.test(text)) {
-        return false;
+        return null;
       }
       // Ignore lines that start with '#' or '@'
       if (text.startsWith('#') || text.startsWith('@')) {
-        return false;
+        return null;
       }
-      return true;
+      return item;
     });
   }
 }
@@ -127,16 +140,23 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
   return { text, mean };
 }
 function calculateBox({ lines, lineImages }, { accuracyMean }) {
-  let mainLine = lines;
-  const box = lineImages;
-  for (const i in mainLine) {
-    const b = box[mainLine.length - Number(i) - 1].box;
-    for (const p of b) {
-      p[0] = p[0];
-      p[1] = p[1];
-    }
-    mainLine[i]['box'] = b;
-  }
+  // let mainLine = lines;
+  // const box = lineImages;
+  // for (const i in mainLine) {
+  //   const b = box[mainLine.length - Number(i) - 1].box;
+  //   for (const p of b) {
+  //     p[0] = p[0];
+  //     p[1] = p[1];
+  //   }
+  //   mainLine[i]['box'] = b;
+  // }
+  let mainLine = lines
+    .map((line, i) => ({
+      ...line,
+      box: lineImages[i].box,
+    }))
+    .filter((item) => item?.text);
+
   mainLine = mainLine.filter((x) => x.mean >= accuracyMean);
   mainLine = afAfRec(mainLine);
   return mainLine;
