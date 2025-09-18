@@ -1,6 +1,9 @@
 import { defaultModels, FileUtils, InferenceSession } from '../backend';
 import invariant from 'tiny-invariant';
 import { ModelBase } from './ModelBase';
+import pathLib from 'path';
+
+let DEBUG_VAR = '';
 export class Recognition extends ModelBase {
   #dictionary;
   #accuracyMean;
@@ -22,6 +25,7 @@ export class Recognition extends ModelBase {
     return new Recognition({ model, options: restOptions }, dictionary);
   }
   async run(lineImages, { onnxOptions = {} } = {}, fileName) {
+    DEBUG_VAR = fileName;
     const modelDatas = await Promise.all(
       // Detect text from each line image
       lineImages.map(async (lineImage, index) => {
@@ -48,15 +52,55 @@ export class Recognition extends ModelBase {
         return modelData;
       }),
     );
+
+    // if (pathLib.basename(fileName) === 'frame-0004_output_box_0') {
+    //   console.log('========================');
+    //   console.log('========================');
+    //   console.log('modelDatas', modelDatas);
+    // }
+
     const allLines = [];
     // console.time('Recognition')
+
+    // let count = 0;
+
     for (const modelData of modelDatas) {
       // Run model for each line image
       const output = await this.runModel({ modelData, onnxOptions });
+
+      // if (pathLib.basename(fileName) === 'frame-0004_output_box_0') {
+      //   console.log('========================');
+      //   console.log('========================');
+      //   console.log('output', output);
+      // }
+
       // use Dictoinary to decode output to text
       const lines = await this.decodeText(output);
-      allLines.unshift(...lines);
+
+      // if (pathLib.basename(fileName) === 'frame-0004_output_box_0') {
+      //   console.log('========================');
+      //   console.log('========================');
+      //   console.log(
+      //     'OCR RESULT',
+      //     'lineIndex=',
+      //     count,
+      //     'box=',
+      //     lineImages[count].box,
+      //     'text=',
+      //     lines.map((l) => l.text.replace(/\r/g, '')).join(' '),
+      //   );
+      // }
+
+      // allLines.unshift(...lines);
+      allLines.push(...lines);
+
+      // count++;
     }
+
+    // console.log('========================');
+    // console.log('========================');
+    // console.log('========================,fileName');
+    // console.log('fileName', pathLib.basename(fileName));
     // console.timeEnd('Recognition')
     return calculateBox(
       { lines: allLines, lineImages },
@@ -84,16 +128,29 @@ export class Recognition extends ModelBase {
       line[ml] = decode(this.#dictionary, predsIdx, predsProb, true);
       ml--;
     }
-    return line.filter((item) => {
+
+    // return line.filter((item) => {
+    //   const text = item.text;
+    //   if (text.length <= 2 && !/\d/.test(text)) {
+    //     return false;
+    //   }
+    //   // Ignore lines that start with '#' or '@'
+    //   if (text.startsWith('#') || text.startsWith('@')) {
+    //     return false;
+    //   }
+    //   return true;
+    // });
+
+    return line.map((item) => {
       const text = item.text;
       if (text.length <= 2 && !/\d/.test(text)) {
-        return false;
+        return null;
       }
       // Ignore lines that start with '#' or '@'
       if (text.startsWith('#') || text.startsWith('@')) {
-        return false;
+        return null;
       }
-      return true;
+      return item;
     });
   }
 }
@@ -101,6 +158,9 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
   const ignoredTokens = [0];
   const charList = [];
   const confList = [];
+
+  const tempList = [];
+
   for (let idx = 0; idx < textIndex.length; idx++) {
     if (textIndex[idx] in ignoredTokens) {
       continue;
@@ -112,15 +172,26 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
     }
     if (textIndex[idx] === 18384) {
       charList.push(' ');
+      tempList.push(' ');
     } else {
       charList.push(dictionary[textIndex[idx] - 1]);
+      tempList.push(String(dictionary[textIndex[idx] - 1]).replace('\r', ''));
     }
+
     if (textProb) {
       confList.push(textProb[idx]);
     } else {
       confList.push(1);
     }
   }
+
+  // if (pathLib.basename(DEBUG_VAR) === 'frame-0004_output_box_0') {
+  //   console.log('========================');
+  //   console.log('========================');
+  //   console.log('textIndex', textIndex);
+  //   console.log('charList', charList);
+  // }
+
   let text = '';
   let mean = 0;
   if (charList.length) {
@@ -134,16 +205,75 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
   return { text, mean };
 }
 function calculateBox({ lines, lineImages }, { accuracyMean }) {
-  let mainLine = lines;
-  const box = lineImages;
-  for (const i in mainLine) {
-    const b = box[mainLine.length - Number(i) - 1].box;
-    for (const p of b) {
-      p[0] = p[0];
-      p[1] = p[1];
-    }
-    mainLine[i]['box'] = b;
+  // let mainLine = lines;
+
+  let mainLine = lines
+    .map((line, i) => {
+      const result = {
+        ...line,
+        box: lineImages[i].box,
+      };
+
+      if (pathLib.basename(DEBUG_VAR) === 'frame-0004_output_box_0') {
+        console.log('========================');
+        console.log('========================');
+        console.log('line', line);
+        console.log('lineImages[i].box', lineImages[i].box);
+      }
+
+      return result;
+    })
+    .filter((item) => item?.text);
+
+  if (pathLib.basename(DEBUG_VAR) === 'frame-0004_output_box_0') {
+    // console.log('========================');
+    // console.log('========================');
+    // console.log('lines', lines);
+    // console.log('lineImages', lineImages[0].box);
+    // console.log('lineImages', lineImages[1].box);
+    // console.log('lineImages', lineImages[2].box);
+    console.log('mainLine', mainLine);
   }
+
+  // console.log('========================');
+  // console.log('========================');
+  // console.log('mainLine', mainLine);
+
+  // const box = lineImages;
+  // for (const i in mainLine) {
+  //   if (pathLib.basename(DEBUG_VAR) === 'frame-0004_output_box_0') {
+  //     console.log('mainLine', mainLine);
+  //     console.log('i', i);
+  //   }
+
+  //   // if (pathLib.basename(DEBUG_VAR) === 'frame-0004_output_box_0')
+  //   //   console.log(
+  //   //     'BEFORE',
+  //   //     i,
+  //   //     JSON.stringify(mainLine[i].text),
+  //   //     '→',
+  //   //     box[i].box,
+  //   //   );
+
+  //   const b = box[mainLine.length - Number(i) - 1].box;
+
+  //   // if (pathLib.basename(DEBUG_VAR) === 'frame-0004_output_box_0')
+  //   //   console.log('AFTER ', i, JSON.stringify(mainLine[i].text), '→', b);
+
+  //   // console.log('========================');
+  //   // console.log('========================');
+  //   // console.log('box', b);
+  //   // console.log('text', JSON.stringify(lines[i].text));
+  //   // console.log('========================');
+  //   // console.log('========================');
+  //   // console.log('DEBUG: text=', JSON.stringify(mainLine[i].text), ' box=', b);
+
+  //   // for (const p of b) {
+  //   //   p[0] = p[0];
+  //   //   p[1] = p[1];
+  //   // }
+  //   mainLine[i]['box'] = b;
+  // }
   mainLine = mainLine.filter((x) => x.mean >= accuracyMean);
   mainLine = afAfRec(mainLine);
   return mainLine;

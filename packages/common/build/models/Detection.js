@@ -7,6 +7,8 @@ import {
 import invariant from 'tiny-invariant';
 import { ModelBase } from './ModelBase';
 import pathLib from 'path';
+import cv from '@techstark/opencv-js';
+import sharp from 'sharp';
 
 const BASE_SIZE = 32;
 const Y_THRESHOLD = 35; // bound for filtering by blur level
@@ -57,7 +59,40 @@ export class Detection extends ModelBase {
     //   - findContours from the image
     //   - returns text boxes and line images
     // return await splitIntoLineImages(outputImage, inputImage);
-    return [await splitIntoLineImages(outputImage, inputImage), fileName];
+
+    // return [await splitIntoLineImages(outputImage, inputImage), fileName];
+    const lineImages = await splitIntoLineImages(outputImage, inputImage);
+
+    // if (pathLib.basename(fileName) === 'frame-0004_output_box_0') {
+    //   lineImages.forEach(({ box, image }, i) => {
+    //     console.log('========================');
+    //     console.log('========================');
+    //     console.log(`debug__coords__img__${i}`, box);
+
+    //     sharp(Buffer.from(image.data), {
+    //       raw: {
+    //         width: image.width,
+    //         height: image.height,
+    //         channels: 4, // RGBA
+    //       },
+    //     })
+    //       .jpeg()
+    //       .toFile(`debug__coords__img__${i}.jpg`);
+    //   });
+    // }
+
+    await debugDrawBoxes.call(this, inputImage, lineImages, fileName);
+
+    // console.log('========================');
+    // console.log('========================');
+    // console.log('========================,fileName');
+    // console.log('fileName', pathLib.basename(fileName));
+    // console.log('lineImages', lineImages);
+    // for (const lineImage of lineImages) {
+    //   console.log('lineImage', lineImage.box);
+    // }
+
+    return [lineImages, fileName];
   }
 }
 function multipleOfBaseSize(image, { maxSize } = {}) {
@@ -95,3 +130,39 @@ function outputToImage(output, threshold) {
   return new ImageRaw({ data, width, height });
 }
 //# sourceMappingURL=Detection.js.map
+
+/*====================================================================== */
+/*====================================================================== */
+/*====================================================================== */
+/*====================================================================== */
+async function debugDrawBoxes(baseImage, lineImages, fileName) {
+  const mat = cv.matFromImageData(baseImage);
+
+  for (const { box } of lineImages) {
+    const pts = box.map(([x, y]) => new cv.Point(x, y));
+    for (let i = 0; i < pts.length; i++) {
+      cv.line(
+        mat,
+        pts[i],
+        pts[(i + 1) % pts.length], // connect close contour
+        new cv.Scalar(255, 0, 0, 255), // red color
+        2, // line width
+      );
+    }
+  }
+
+  const out = new ImageRaw({
+    data: mat.data,
+    width: mat.cols,
+    height: mat.rows,
+  });
+
+  await this.debugImage(
+    out,
+    `detection__${fileName}__${Date.now()}_${String(
+      Math.floor(Math.random() * 1_000_000) + 1,
+    ).padStart(7, '0')}.jpg`,
+  );
+
+  mat.delete(); // чистим память
+}

@@ -57,10 +57,10 @@ export class ModelBase {
           channels: 4,
         },
       })
-        .png()
+        .jpeg()
         .toFile(`${debugOutputDir}/${path}`);
 
-      console.log('Saved debug image', `${debugOutputDir}/${path}`);
+      // console.log('Saved debug image', `${debugOutputDir}/${path}`);
     } catch (err) {
       console.error('Sharp failed', err);
     }

@@ -17,6 +17,11 @@ export class Ocr {
     // return await this.#recognition.run(lineImages, options);
 
     const [lineImages, fileName] = await this.#detection.run(image, options);
+
+    // console.log('========================');
+    // console.log('========================');
+    // console.log('lineImages', lineImages);
+
     return await this.#recognition.run(lineImages, options, fileName);
   }
 }
