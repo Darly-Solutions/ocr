@@ -129,10 +129,7 @@ export class Recognition extends ModelBase {
       line[ml] = decode(this.#dictionary, predsIdx, predsProb, true);
       ml--;
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> feature/yolo
     // return line.filter((item) => {
     //   const text = item.text;
     //   if (text.length <= 2 && !/\d/.test(text)) {
@@ -144,10 +141,7 @@ export class Recognition extends ModelBase {
     //   }
     //   return true;
     // });
-<<<<<<< HEAD
 
-=======
->>>>>>> feature/yolo
     return line.map((item) => {
       const text = item.text;
       if (text.length <= 2 && !/\d/.test(text)) {
