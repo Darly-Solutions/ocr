@@ -95,6 +95,7 @@ export class Recognition extends ModelBase {
       allLines.push(...lines);
 
       // count++;
+
     }
 
     // console.log('========================');
@@ -128,7 +129,10 @@ export class Recognition extends ModelBase {
       line[ml] = decode(this.#dictionary, predsIdx, predsProb, true);
       ml--;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/yolo
     // return line.filter((item) => {
     //   const text = item.text;
     //   if (text.length <= 2 && !/\d/.test(text)) {
@@ -140,7 +144,10 @@ export class Recognition extends ModelBase {
     //   }
     //   return true;
     // });
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/yolo
     return line.map((item) => {
       const text = item.text;
       if (text.length <= 2 && !/\d/.test(text)) {
@@ -206,6 +213,7 @@ function decode(dictionary, textIndex, textProb, isRemoveDuplicate) {
 }
 function calculateBox({ lines, lineImages }, { accuracyMean }) {
   // let mainLine = lines;
+<<<<<<< HEAD
 
   let mainLine = lines
     .map((line, i) => {
@@ -274,6 +282,24 @@ function calculateBox({ lines, lineImages }, { accuracyMean }) {
   //   // }
   //   mainLine[i]['box'] = b;
   // }
+=======
+  // const box = lineImages;
+  // for (const i in mainLine) {
+  //   const b = box[mainLine.length - Number(i) - 1].box;
+  //   for (const p of b) {
+  //     p[0] = p[0];
+  //     p[1] = p[1];
+  //   }
+  //   mainLine[i]['box'] = b;
+  // }
+  let mainLine = lines
+    .map((line, i) => ({
+      ...line,
+      box: lineImages[i].box,
+    }))
+    .filter((item) => item?.text);
+
+>>>>>>> feature/yolo
   mainLine = mainLine.filter((x) => x.mean >= accuracyMean);
   mainLine = afAfRec(mainLine);
   return mainLine;
