@@ -3,7 +3,7 @@ import type { InferenceSession as InferenceSessionCommon } from 'onnxruntime-com
 import { ModelBase } from './ModelBase';
 export declare class Detection extends ModelBase {
     static create({ models, onnxOptions, ...restOptions }: ModelCreateOptions): Promise<Detection>;
-    run(path: string, { onnxOptions }?: {
+    run(path: string, { onnxOptions, }?: {
         onnxOptions?: InferenceSessionCommon.RunOptions;
     }): Promise<LineImage[]>;
 }

@@ -5,8 +5,8 @@ export declare class Recognition extends ModelBase {
     #private;
     constructor(options: ModelBaseConstructorArg, dictionary: Dictionary);
     static create({ models, onnxOptions, ...restOptions }: ModelCreateOptions): Promise<Recognition>;
-    run(lineImages: LineImage[], { onnxOptions }?: {
+    run(lineImages: LineImage[], { onnxOptions, }?: {
         onnxOptions?: InferenceSessionCommon.RunOptions;
     }): Promise<Line[]>;
-    decodeText(output: Tensor): Line[];
+    decodeText(output: Tensor): (Line | null)[];
 }
